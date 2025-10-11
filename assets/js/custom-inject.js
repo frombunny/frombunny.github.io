@@ -1,4 +1,3 @@
-// assets/css/custom-inject.js
 (function () {
   const root = document.documentElement.style;
 

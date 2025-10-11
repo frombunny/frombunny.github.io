@@ -4,6 +4,8 @@ source "https://rubygems.org"
 
 gem "jekyll", "~> 4.4"
 gem "jekyll-theme-chirpy", "~> 7.3", ">= 7.3.1"
+gem "webrick", "~> 1.8"
+
 
 gem "jekyll-include-cache"
 gem "jekyll-paginate"
