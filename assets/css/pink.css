@@ -1,0 +1,217 @@
+:root {
+  --main-bg: #fffafd;
+  --text-color: #3a3a3a;
+  --accent-color: #f5a8c4;
+  --accent-hover: #f28ab3;
+  --border-color: #f8dce6;
+}
+
+/* ───────────── 제목(Title) 스타일 강화 ───────────── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #f5a8c4 !important;
+  font-weight: 700 !important; /* 더 두껍게 */
+  letter-spacing: -0.3px !important; /* 살짝 촘촘하게 */
+  line-height: 1.3 !important;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
+}
+
+/* h1은 좀 더 시그니처 느낌으로 */
+h1 {
+  font-size: 2.2em !important;
+  border-bottom: 2px solid rgba(245, 168, 196, 0.35);
+  padding-bottom: 0.2em;
+}
+
+/* h2~h3은 조금만 얇게 */
+h2 {
+  font-size: 1.8em !important;
+  padding-left: 0.4em;
+}
+h3 {
+  font-size: 1.4em !important;
+  font-weight: 600 !important;
+  color: #f28ab3 !important;
+}
+
+/* ───────────── 본문 강조 ───────────── */
+strong,
+b {
+  color: #f28ab3 !important;
+  font-weight: 700 !important;
+}
+
+/* 리스트나 캡션, 소제목 등 */
+li,
+p {
+  font-weight: 500 !important;
+  line-height: 1.75 !important;
+}
+
+/* 기본 배경 & 텍스트 */
+body {
+  background-color: var(--main-bg) !important;
+  color: var(--text-color) !important;
+}
+
+/* 링크 */
+a {
+  color: var(--accent-color) !important;
+  transition: color 0.2s ease-in-out;
+}
+a:hover,
+a:focus {
+  color: var(--accent-hover) !important;
+}
+
+/* 버튼 */
+button,
+.btn,
+input[type='submit'],
+input[type='button'] {
+  background-color: #ffe2ec !important;
+  border: 1px solid var(--accent-color) !important;
+  color: #3a3a3a !important;
+  border-radius: 8px;
+  padding: 0.4em 0.9em;
+  transition: all 0.2s ease-in-out;
+}
+button:hover,
+.btn:hover,
+input[type='submit']:hover,
+input[type='button']:hover {
+  background-color: var(--accent-color) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 6px rgba(245, 168, 196, 0.4);
+}
+
+/* 사이드바 */
+.sidebar {
+  background-color: #fff9fb !important;
+  border-right: 1px solid var(--border-color) !important;
+}
+
+.sidebar .site-title {
+  color: var(--accent-color) !important;
+}
+
+.sidebar a.nav-link {
+  color: var(--accent-color) !important;
+  border-radius: 10px;
+  transition: all 0.25s ease-in-out;
+}
+.sidebar a.nav-link:hover,
+.sidebar a.nav-link:focus {
+  background-color: #fff1f6 !important;
+  color: var(--accent-hover) !important;
+}
+.sidebar a.nav-link.active {
+  color: #fff !important;
+  background-color: var(--accent-color) !important;
+  font-weight: 600;
+}
+
+/* 제목 */
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: var(--accent-color) !important;
+}
+
+/* 태그, 카테고리 */
+.tag,
+.category,
+.badge {
+  background-color: #fde2ec !important;
+  color: #555 !important;
+  border-radius: 20px !important;
+  padding: 0.3em 0.8em;
+  border: none !important;
+  font-size: 0.85em;
+}
+.tag:hover,
+.category:hover,
+.badge:hover {
+  background-color: var(--accent-color) !important;
+  color: #fff !important;
+}
+
+/* ───────────── 코드 블록 ───────────── */
+div.highlight {
+  background-color: #fdfcfd !important;
+  border: 1px solid #f0e4eb !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  margin: 1.2em 0 !important;
+}
+
+div.highlight pre,
+div.highlight > div > pre {
+  background-color: #fdfcfd !important;
+  color: #2b2b2b !important;
+  padding: 1.1em 1.2em !important;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  font-size: 0.95em !important;
+  line-height: 1.55 !important;
+  border-radius: 0 0 12px 12px !important;
+}
+
+div.highlight table td:first-child {
+  background-color: #fdfcfd !important;
+  color: #b58ea3 !important;
+  border-right: 1px solid #f2d9e1 !important;
+}
+
+.highlight .k,
+.highlight .kd,
+.highlight .kn {
+  color: #d35d8e !important;
+}
+.highlight .s,
+.highlight .s1,
+.highlight .s2 {
+  color: #177b42 !important;
+}
+.highlight .nf,
+.highlight .nt {
+  color: #9c4ca5 !important;
+}
+.highlight .c,
+.highlight .cm {
+  color: #a69ca5 !important;
+  font-style: italic !important;
+}
+
+/* 다크 모드 */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #2b2b2b !important;
+    color: #f2f2f2 !important;
+  }
+
+  .sidebar {
+    background-color: #333 !important;
+    border-right: 1px solid #444 !important;
+  }
+
+  .sidebar a.nav-link.active {
+    background-color: var(--accent-color) !important;
+    color: #fff !important;
+  }
+
+  div.highlight {
+    background-color: #2a2a2e !important;
+    border-color: #3c3c40 !important;
+  }
+
+  div.highlight pre {
+    background-color: #2e2e31 !important;
+    color: #f2f2f2 !important;
+  }
+}
