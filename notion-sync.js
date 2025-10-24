@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Client } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
 import fs from "fs";
@@ -22,13 +23,23 @@ async function fetchPosts(databaseId) {
 async function toMarkdown(page) {
     const props = page.properties;
     const title = props.Title.title[0]?.plain_text || "Untitled";
-    const slug = props.Slug?.rich_text?.[0]?.plain_text || title.toLowerCase().replace(/\s+/g, "-");
+    const slug =
+        props.Slug?.rich_text?.[0]?.plain_text ||
+        title.toLowerCase().replace(/\s+/g, "-");
     const category = props.Category?.select?.name || "General";
-    const tags = props.Tags?.multi_select?.map(t => t.name) || [];
+    const tags = props.Tags?.multi_select?.map((t) => t.name) || [];
     const date = props.Date?.date?.start || new Date().toISOString().slice(0, 10);
 
+    // Notion 페이지를 Markdown으로 변환
     const mdBlocks = await n2m.pageToMarkdown(page.id);
-    const mdString = n2m.toMarkdownString(mdBlocks);
+
+    // 본문이 비어 있으면 건너뛰기
+    if (!mdBlocks || mdBlocks.length === 0) {
+        console.log(`⚠️  Skipping "${title}" (본문 없음)`);
+        return;
+    }
+
+    const mdString = n2m.toMarkdownString(mdBlocks) || "";
 
     const frontMatter = matter.stringify(mdString, {
         layout: "post",
@@ -44,6 +55,8 @@ async function toMarkdown(page) {
 
     const filename = `${date}-${slug}.md`;
     fs.writeFileSync(`${dir}/${filename}`, frontMatter);
+
+    console.log(`📝  Created post: ${dir}/${filename}`);
 }
 
 (async () => {
