@@ -1,0 +1,34 @@
+name: Sync Notion Posts
+
+on:
+  schedule:
+    - cron: "0 * * * *" # 매시간 실행
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: npm install @notionhq/client notion-to-md gray-matter
+
+      - name: Run Notion Sync
+        run: node notion-sync.js
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_IDS: ${{ secrets.NOTION_DATABASE_IDS }}
+
+      - name: Commit & Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "sync: update posts from Notion" || echo "No changes"
+          git push
