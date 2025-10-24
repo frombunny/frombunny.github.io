@@ -10,6 +10,7 @@ gem "webrick", "~> 1.8"
 gem "jekyll-include-cache"
 gem "jekyll-paginate"
 gem "jekyll-seo-tag"
+gem "jekyll-archives"
 
 gem "html-proofer", "~> 5.0", group: :test
 
