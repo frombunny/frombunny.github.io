@@ -223,7 +223,7 @@ jekyll-archives:
     tag: tag
   permalinks:
     tag: /tags/:name/
-    category: /categories/:slug/
+    category: /categories/:name/
 
 plugins:
   - jekyll-include-cache
