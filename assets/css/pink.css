@@ -147,7 +147,7 @@ div.highlight {
   background-color: #fdfcfd !important;
   border: 1px solid #f0e4eb !important;
   border-radius: 12px !important;
-  overflow: hidden !important;
+  overflow: auto !important;
   margin: 1.2em 0 !important;
 }
 
