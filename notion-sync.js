@@ -26,60 +26,84 @@ async function toMarkdown(page) {
     const slug =
         props.Slug?.rich_text?.[0]?.plain_text ||
         title.toLowerCase().replace(/\s+/g, "-");
-    const category = props.Category?.select?.name || "General";
-    const tags = props.Tags?.multi_select?.map(t => t.name) || [];
-    const date = props.Date?.date?.start || new Date().toISOString().slice(0, 10);
 
-    // 🔸 Notion → Markdown 변환
+    // ✅ Category path (예: JAVA/[김영한의 실전 자바] 기본편)
+    const categoryList =
+        props.Category?.multi_select?.map((c) => c.name.trim()) || ["General"];
+    const categoryPath = categoryList.join("/");
+    const categories = [categoryPath];
+
+    // ✅ Tags (multi_select or select 둘 다 지원)
+    const tags =
+        props.Tags?.multi_select?.length > 0
+            ? props.Tags.multi_select.map((t) => t.name.trim())
+            : props.Tags?.select
+                ? [props.Tags.select.name.trim()]
+                : [];
+
+    const date =
+        props.Date?.date?.start || new Date().toISOString().slice(0, 10);
+
+    // ✅ Markdown 변환
     const mdBlocks = await n2m.pageToMarkdown(page.id);
+    const mdResult = n2m.toMarkdownString(mdBlocks);
+    let mdString = typeof mdResult === "string" ? mdResult : mdResult?.parent || "";
 
-    // 🔸 본문이 비어 있으면 skip
-    if (!mdBlocks || mdBlocks.length === 0) {
-        console.log(`⚠️  Skipping "${title}" (본문 없음)`);
-        return;
-    }
+    // ✅ 코드 블록 보호
+    const codeBlocks = [];
+    mdString = mdString.replace(/```[\s\S]*?```/g, (block) => {
+        codeBlocks.push(block);
+        return `{{CODE_BLOCK_${codeBlocks.length - 1}}}`;
+    });
 
-    // notion-to-md 최신버전은 { parent, children } 반환 가능 → parent만 사용
-    const mdString = n2m.toMarkdownString(mdBlocks)?.parent || "";
+    mdString = mdString
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
 
-    // 🔸 변환 결과가 빈 문자열이면 skip
+        // ✅ 인용문 안의 번호 리스트 줄 구분 강제
+        .replace(/(^|\n)>(\s*)(\d+)\.\s/g, "$1>\n$2$3. ")
+
+        // ✅ 인용문 한 줄씩 정리 (공백 1칸 유지)
+        .replace(/(^|\n)> ?([^\n]*)/g, "$1> $2")
+
+        // ✅ 인용문이 끝나면 반드시 한 줄 개행 추가 (코드블록이나 문단과 구분)
+        .replace(/(> [^\n]+)(?=\n(?!>))/g, "$1\n")
+
+        // ✅ 인용문 마지막 줄 다음이 코드블록이면 빈 줄 추가
+        .replace(/(> [^\n]+)\n(?=```)/g, "$1\n\n")
+
+        // ✅ 연속된 인용문 줄 사이에는 한 줄만 유지 (중복 제거)
+        .replace(/(> [^\n]+)\n{2,}(?=>)/g, "$1\n")
+
+        // ✅ 문단 간 줄바꿈 (단, 인용문 내부 제외)
+        .replace(/(^[^>].*?)\n(?!>)/g, "$1\n\n")
+
+        // ✅ 코드블록 복원
+        .replace(/{{CODE_BLOCK_(\d+)}}/g, (_, idx) => codeBlocks[idx]);
+
     if (!mdString.trim()) {
-        console.log(`⚠️  Skipping "${title}" (본문 변환 결과 없음)`);
+        console.log(`⚠️ Skipped empty post: ${title}`);
         return;
     }
 
-    // 🔸 Chirpy에서 토글/코드 깨짐 방지
-    // ```코드``` → {% raw %}```{% endraw %} 으로 자동 감싸기
-    const safeMd = mdString.replace(/```/g, "{% raw %}```{% endraw %}");
-
-    // 🔸 토글(<details>) 블록 내에서도 안전하게 코드 렌더링
-    // <details> 블록 앞뒤에 공백 한 줄 추가
-    const formattedMd = safeMd
-        .replace(/<details>/g, "\n<details>\n")
-        .replace(/<\/details>/g, "\n</details>\n");
-
-    // 🔸 Front Matter + 본문 조합
-    const frontMatter = matter.stringify(formattedMd, {
+    // ✅ Front matter
+    const frontMatter = matter.stringify(mdString, {
         layout: "post",
         title,
         date,
-        categories: [category],
+        categories,
         tags,
         author: "frombunny",
     });
 
-    // 🔸 카테고리별 폴더 생성
-    const dir = `_posts/${category.toLowerCase()}`;
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    // ✅ 폴더 경로 반영 (소문자 변환)
+    const dirPath = `_posts/${categoryList.map((c) => c.toLowerCase()).join("/")}`;
+    fs.mkdirSync(dirPath, { recursive: true });
 
-    // 🔸 파일 생성
     const filename = `${date}-${slug}.md`;
-    fs.writeFileSync(`${dir}/${filename}`, frontMatter);
-
-    console.log(`📝  Created post: ${dir}/${filename}`);
+    fs.writeFileSync(`${dirPath}/${filename}`, frontMatter);
+    console.log(`✅ Synced: ${filename}`);
 }
-
-
 
 (async () => {
     let total = 0;

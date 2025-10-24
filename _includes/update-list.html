@@ -1,40 +1,124 @@
-<!-- Get 5 last posted/updated posts -->
-
-{% assign MAX_SIZE = 5 %}
-
-{% assign all_list = '' | split: '' %}
-
-{% for post in site.posts %}
-  {% assign datetime = post.last_modified_at | default: post.date %}
-
-  {% capture elem %}
-    {{- datetime | date: "%Y%m%d%H%M%S" -}}::{{- forloop.index0 -}}
-  {% endcapture %}
-
-  {% assign all_list = all_list | push: elem %}
-{% endfor %}
-
-{% assign all_list = all_list | sort | reverse %}
-
-{% assign update_list = '' | split: '' %}
-
-{% for entry in all_list limit: MAX_SIZE %}
-  {% assign update_list = update_list | push: entry %}
-{% endfor %}
-
-{% if update_list.size > 0 %}
-  <section id="access-lastmod">
-    <h2 class="panel-heading">{{- site.data.locales[include.lang].panel.lastmod -}}</h2>
-    <ul class="content list-unstyled ps-0 pb-1 ms-1 mt-2">
-      {% for item in update_list %}
-        {% assign index = item | split: '::' | last | plus: 0 %}
-        {% assign post = site.posts[index] %}
-        {% assign url = post.url | relative_url %}
-        <li class="text-truncate lh-lg">
-          <a href="{{ url }}">{{ post.title }}</a>
-        </li>
-      {% endfor %}
-    </ul>
-  </section>
-  <!-- #access-lastmod -->
+{% assign MAX_SIZE = 5 %} {% assign all_list = '' | split: '' %} {% for post in
+site.posts %} {% assign datetime = post.last_modified_at | default: post.date %}
+{% capture elem %} {{- datetime | date: "%Y%m%d%H%M%S" -}}::{{- forloop.index0
+-}} {% endcapture %} {% assign all_list = all_list | push: elem %} {% endfor %}
+{% assign all_list = all_list | sort | reverse %} {% assign update_list = '' |
+split: '' %} {% for entry in all_list limit: MAX_SIZE %} {% assign update_list =
+update_list | push: entry %} {% endfor %} {% if update_list.size > 0 %}
+<section id="access-lastmod" class="recent-posts-card">
+  <h3 class="recent-heading">
+    <i class="fas fa-clock"></i>
+    {{ site.data.locales[include.lang].panel.lastmod }}
+  </h3>
+  <ul class="recent-list">
+    {% for item in update_list %} {% assign index = item | split: '::' | last |
+    plus: 0 %} {% assign post = site.posts[index] %} {% assign url = post.url |
+    relative_url %}
+    <li class="recent-item">
+      <a href="{{ url }}">{{ post.title }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
 {% endif %}
+
+<style>
+  /* 🌸 카드 전체 */
+  .recent-posts-card {
+    background-color: #fff;
+    padding: 1.2rem 1.5rem;
+    margin-top: 1.5rem;
+    transition: all 0.25s ease-in-out;
+  }
+
+  /* 🌸 헤더 */
+  .recent-heading {
+    color: #f28ab3;
+    font-weight: 700;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .recent-heading i {
+    color: #f28ab3;
+  }
+
+  /* 🌸 리스트 */
+  .recent-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .recent-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 3px solid #f8dce6;
+    padding: 0.5rem 0.8rem;
+    margin-bottom: 0.4rem;
+    background-color: #fffafd;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .recent-item a {
+    color: #f28ab3;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .recent-item a:hover {
+    color: #ff7faa;
+    text-decoration: underline;
+  }
+
+  /* 🌸 날짜 표시 */
+  .recent-date {
+    font-size: 0.85rem;
+    color: #b77f97;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .recent-date i {
+    font-size: 0.85rem;
+    color: #f5a8c4;
+  }
+
+  /* 🌙 다크 모드 */
+  @media (prefers-color-scheme: dark) {
+    .recent-posts-card {
+      background-color: #2b2b2b;
+      border-color: #3a3a3a;
+      box-shadow: 0 3px 6px rgba(245, 168, 196, 0.1);
+    }
+
+    .recent-heading {
+      color: #f5a8c4;
+    }
+
+    .recent-item {
+      background-color: #333;
+      border-left-color: #444;
+    }
+
+    .recent-item:hover {
+      background-color: #3a3a3a;
+      border-left-color: #f5a8c4;
+    }
+
+    .recent-item a {
+      color: #f5a8c4;
+    }
+
+    .recent-date {
+      color: #d5a2b8;
+    }
+  }
+</style>
