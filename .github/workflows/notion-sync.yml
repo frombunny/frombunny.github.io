@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   sync:
@@ -21,9 +23,9 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install Node dependencies
         run: |
-          npm install @notionhq/client notion-to-md gray-matter
+          npm install @notionhq/client notion-to-md gray-matter dotenv
 
       - name: Run Notion Sync
         run: node notion-sync.js
@@ -31,7 +33,23 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_IDS: ${{ secrets.NOTION_DATABASE_IDS }}
 
-      - name: Commit & Push
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: true
+
+      - name: Install Jekyll Dependencies
+        run: |
+          bundle install
+
+      - name: Build Site with Jekyll (including categories)
+        run: |
+          bundle exec jekyll build -d "_site"
+        env:
+          JEKYLL_ENV: "production"
+
+      - name: Commit & Push updates
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
