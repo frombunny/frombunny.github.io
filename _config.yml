@@ -214,6 +214,7 @@ exclude:
   - purgecss.js
   - "*.config.js"
   - "package*.json"
+  - assets/css/jekyll-theme-chirpy.scss
 
 jekyll-archives:
   enabled: [categories, tags]
@@ -229,9 +230,6 @@ plugins:
   - jekyll-paginate
   - jekyll-seo-tag
 
-exclude:
-  - assets/css/jekyll-theme-chirpy.scss
 include:
   - assets/css/pink.css
   - assets/js/custom-inject.js
-
