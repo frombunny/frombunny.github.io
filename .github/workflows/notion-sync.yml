@@ -3,7 +3,7 @@ name: Sync Notion Posts
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * * *" # 매시간
+    - cron: "0 * * * *" # 매시간 실행
 
 permissions:
   contents: write
@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -21,7 +22,8 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install @notionhq/client notion-to-md gray-matter
+        run: |
+          npm install @notionhq/client notion-to-md gray-matter
 
       - name: Run Notion Sync
         run: node notion-sync.js
