@@ -27,13 +27,10 @@ async function toMarkdown(page) {
         props.Slug?.rich_text?.[0]?.plain_text ||
         title.toLowerCase().replace(/\s+/g, "-");
 
-    // ✅ Category path (예: JAVA/[김영한의 실전 자바] 기본편)
     const categoryList =
         props.Category?.multi_select?.map((c) => c.name.trim()) || ["General"];
-    const categoryPath = categoryList.join("/");
-    const categories = [categoryPath];
+    const categories = [categoryList.join("/")];
 
-    // ✅ Tags (multi_select or select 둘 다 지원)
     const tags =
         props.Tags?.multi_select?.length > 0
             ? props.Tags.multi_select.map((t) => t.name.trim())
@@ -42,51 +39,113 @@ async function toMarkdown(page) {
                 : [];
 
     const date =
-        props.Date?.date?.start || new Date().toISOString().slice(0, 10);
+        props.Date?.date?.start ||
+        page.created_time?.slice(0, 10) ||
+        new Date().toISOString().slice(0, 10);
 
-    // ✅ Markdown 변환
     const mdBlocks = await n2m.pageToMarkdown(page.id);
     const mdResult = n2m.toMarkdownString(mdBlocks);
-    let mdString = typeof mdResult === "string" ? mdResult : mdResult?.parent || "";
+    let mdString =
+        typeof mdResult === "string" ? mdResult : mdResult?.parent || "";
 
-    // ✅ 코드 블록 보호
     const codeBlocks = [];
+    const toggleBlocks = [];
+
     mdString = mdString.replace(/```[\s\S]*?```/g, (block) => {
         codeBlocks.push(block);
         return `{{CODE_BLOCK_${codeBlocks.length - 1}}}`;
     });
 
+    mdString = mdString.replace(/<details>[\s\S]*?<\/details>/g, (block) => {
+        toggleBlocks.push(block);
+        return `{{TOGGLE_BLOCK_${toggleBlocks.length - 1}}}`;
+    });
+
     mdString = mdString
         .replace(/\r\n/g, "\n")
         .replace(/\r/g, "\n")
-
-        // ✅ 인용문 안의 번호 리스트 줄 구분 강제
-        .replace(/(^|\n)>(\s*)(\d+)\.\s/g, "$1>\n$2$3. ")
-
-        // ✅ 인용문 한 줄씩 정리 (공백 1칸 유지)
-        .replace(/(^|\n)> ?([^\n]*)/g, "$1> $2")
-
-        // ✅ 인용문이 끝나면 반드시 한 줄 개행 추가 (코드블록이나 문단과 구분)
+        .replace(/(^|\n)> ?([^\n]+)/g, "$1> $2")
         .replace(/(> [^\n]+)(?=\n(?!>))/g, "$1\n")
+        .replace(/(^[^>`{\n].*?)\n(?![`>{])/g, "$1<br>\n")
+        .replace(/(^|\n)\s*\n/g, "\n\n");
 
-        // ✅ 인용문 마지막 줄 다음이 코드블록이면 빈 줄 추가
-        .replace(/(> [^\n]+)\n(?=```)/g, "$1\n\n")
+    // ✅ summary 안의 Markdown 문법 수동 변환 (**bold**, *italic*, [link])
+    mdString = mdString.replace(
+        /<summary>([\s\S]*?)<\/summary>/g,
+        (_, inner) => {
+            let processed = inner
+                // bold → <strong>
+                .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                // italic → <em>
+                .replace(/(^|[^*])\*(.*?)\*(?!\*)/g, "$1<em>$2</em>")
+                // inline code → <code>
+                .replace(/`([^`]+)`/g, "<code>$1</code>")
+                // link → <a>
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
-        // ✅ 연속된 인용문 줄 사이에는 한 줄만 유지 (중복 제거)
-        .replace(/(> [^\n]+)\n{2,}(?=>)/g, "$1\n")
+            // ✅ HTML 인코딩 복원 추가! (핵심)
+            processed = processed
+                .replace(/&lt;/g, "<")
+                .replace(/&gt;/g, ">")
+                .replace(/&amp;/g, "&");
 
-        // ✅ 문단 간 줄바꿈 (단, 인용문 내부 제외)
-        .replace(/(^[^>].*?)\n(?!>)/g, "$1\n\n")
+            return `<summary>${processed}</summary>`;
+        }
+    );
 
-        // ✅ 코드블록 복원
+
+    toggleBlocks.forEach((block, i) => {
+        let toggle = block;
+
+        // details에 markdown="1" 보강
+        toggle = toggle.replace(
+            /<details(?![^>]*markdown="1")>/,
+            '<details markdown="1">'
+        );
+
+        // summary 뒤에 빈줄 하나 보장
+        toggle = toggle.replace(/(<summary[\s\S]*?<\/summary>)(?!\n\n)/, "$1\n\n");
+
+        // ✅ summary 안의 Markdown(**, *, ``, [link]()) → HTML 로컬 변환
+        toggle = toggle.replace(/<summary([^>]*)>([\s\S]*?)<\/summary>/, (m, attrs, inner) => {
+            let processed = inner
+                // bold → <strong>
+                .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                // italic → <em>  (단일 *만 잡도록 정규식 유의)
+                .replace(/(^|[^*])\*(.*?)\*(?!\*)/g, "$1<em>$2</em>")
+                // inline code → <code>
+                .replace(/`([^`]+)`/g, "<code>$1</code>")
+                // link → <a>
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+                // HTML 인코딩 복원
+                .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+
+            return `<summary${attrs}>${processed}</summary>`;
+        });
+
+        // 토글 내부 이스케이프 정리
+        toggle = toggle
+            .replace(/\\\*/g, "*")
+            .replace(/\\_/g, "_")
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&amp;/g, "&");
+
+        // 코드블록은 ``` 그대로 유지
+        toggle = toggle.replace(/```(\w+)?\n([\s\S]*?)\n```/g, "```$1\n$2\n```");
+
+        // 중복 개행 정리
+        toggle = toggle.replace(/\n{3,}/g, "\n\n");
+
+        toggleBlocks[i] = toggle;
+    });
+
+
+    mdString = mdString
+        .replace(/{{TOGGLE_BLOCK_(\d+)}}/g, (_, idx) => toggleBlocks[idx])
         .replace(/{{CODE_BLOCK_(\d+)}}/g, (_, idx) => codeBlocks[idx]);
 
-    if (!mdString.trim()) {
-        console.log(`⚠️ Skipped empty post: ${title}`);
-        return;
-    }
-
-    // ✅ Front matter
+    // ✅ Front matter 추가
     const frontMatter = matter.stringify(mdString, {
         layout: "post",
         title,
@@ -96,7 +155,6 @@ async function toMarkdown(page) {
         author: "frombunny",
     });
 
-    // ✅ 폴더 경로 반영 (소문자 변환)
     const dirPath = `_posts/${categoryList.map((c) => c.toLowerCase()).join("/")}`;
     fs.mkdirSync(dirPath, { recursive: true });
 

@@ -1,77 +1,184 @@
-<!-- The Top Bar -->
-
-<header id="topbar-wrapper" class="flex-shrink-0" aria-label="Top Bar">
-  <div
-    id="topbar"
-    class="d-flex align-items-center justify-content-between px-lg-3 h-100"
-  >
-    <nav id="breadcrumb" aria-label="Breadcrumb">
-      {% assign paths = page.url | split: '/' %}
-
-      {% if paths.size == 0 or page.layout == 'home' %}
-        <!-- index page -->
-        <span>{{ site.data.locales[include.lang].tabs.home | capitalize }}</span>
-
-      {% else %}
-        {% for item in paths %}
-          {% if forloop.first %}
-            <span>
-              <a href="{{ '/' | relative_url }}">
-                {{- site.data.locales[include.lang].tabs.home | capitalize -}}
-              </a>
-            </span>
-
-          {% elsif forloop.last %}
-            {% if page.collection == 'tabs' %}
-              <span>{{ site.data.locales[include.lang].tabs[item] | default: page.title }}</span>
-            {% else %}
-              <span>{{ page.title }}</span>
-            {% endif %}
-
-          {% elsif page.layout == 'category' or page.layout == 'tag' %}
-            <span>
-              <a href="{{ item | append: '/' | relative_url }}">
-                {{- site.data.locales[include.lang].tabs[item] | default: page.title -}}
-              </a>
-            </span>
-          {% endif %}
-        {% endfor %}
-      {% endif %}
+<!-- 🌸 Section-style Header with Centered Breadcrumb + Right Search -->
+<section id="section-header" class="section-header">
+  <div class="section-inner container py-4 px-4 position-relative">
+    <!-- 🩰 Breadcrumb -->
+    <nav
+      id="breadcrumb"
+      aria-label="Breadcrumb"
+      class="breadcrumb-nav text-center mb-2"
+    >
+      {% assign paths = page.url | split: '/' %} {% if paths.size == 0 or
+      page.layout == 'home' %}
+      <span class="crumb current">
+        {{ site.data.locales[include.lang].tabs.home | capitalize }}
+      </span>
+      {% else %} {% for item in paths %} {% if forloop.first %}
+      <span class="crumb">
+        <a href="{{ '/' | relative_url }}">Home > </a>
+      </span>
+      {% elsif forloop.last %}
+      <span class="crumb current">
+        {{ page.title | default: item | capitalize }}
+      </span>
+      {% endif %} {% endfor %} {% endif %}
     </nav>
-    <!-- endof #breadcrumb -->
 
-    <button type="button" id="sidebar-trigger" class="btn btn-link" aria-label="Sidebar">
-      <i class="fas fa-bars fa-fw"></i>
-    </button>
-
-    <div id="topbar-title">
-      {% if page.layout == 'home' %}
-        {{- site.data.locales[include.lang].title | default: site.title -}}
-      {% elsif page.collection == 'tabs' or page.layout == 'page' %}
-        {%- capture tab_key -%}{{ page.url | split: '/' }}{%- endcapture -%}
-        {{- site.data.locales[include.lang].tabs[tab_key] | default: page.title -}}
-      {% else %}
-        {{- site.data.locales[include.lang].layout[page.layout] | default: page.layout | capitalize -}}
-      {% endif %}
+    <!-- 🔍 Search Bar -->
+    <div class="section-search">
+      <i class="fas fa-search"></i>
+      <input
+        type="search"
+        id="section-search-input"
+        placeholder="검색어를 입력하세요..."
+        autocomplete="off"
+      />
     </div>
 
-    <button type="button" id="search-trigger" class="btn btn-link" aria-label="Search">
-      <i class="fas fa-search fa-fw"></i>
-    </button>
-
-    <search id="search" class="align-items-center ms-3 ms-lg-0">
-      <i class="fas fa-search fa-fw"></i>
-      <input
-        class="form-control"
-        id="search-input"
-        type="search"
-        aria-label="search"
-        autocomplete="off"
-        placeholder="{{ site.data.locales[include.lang].search.hint | capitalize }}..."
-      >
-    </search>
-    <button type="button" class="btn btn-link text-decoration-none" id="search-cancel">
-      {{- site.data.locales[include.lang].search.cancel -}}
-    </button>
+    <!-- 🌸 Decorative underline -->
+    <div class="section-underline mx-auto mt-3"></div>
   </div>
-</header>
+</section>
+
+<style>
+  /* 🌸 섹션 헤더 전체 */
+  #section-header {
+    background: linear-gradient(180deg, #fffafb 0%, #ffffff 80%);
+    border-bottom: 2px solid #f8dce6;
+    box-shadow: 0 4px 12px rgba(245, 168, 196, 0.12);
+    position: relative;
+    z-index: 100;
+  }
+
+  .section-inner {
+    text-align: center;
+    position: relative;
+  }
+
+  /* 🩰 Breadcrumb */
+  .breadcrumb-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    font-size: 1rem;
+  }
+
+  .breadcrumb-nav a {
+    color: #f28ab3;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease-in-out;
+  }
+
+  .breadcrumb-nav a:hover {
+    color: #ff7faa;
+    text-decoration: underline;
+  }
+
+  .crumb {
+    color: #c18fa5;
+  }
+
+  .crumb.current {
+    font-weight: 700;
+    color: #f28ab3;
+  }
+
+  /* 🔍 Search Bar (오른쪽 고정) */
+  .section-search {
+    position: absolute;
+    top: 50%;
+    right: 2rem;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #f8dce6;
+    border-radius: 30px;
+    padding: 0.4rem 0.9rem;
+    background-color: #fffafd;
+    transition: all 0.25s ease-in-out;
+  }
+
+  .section-search:hover {
+    box-shadow: 0 0 6px rgba(245, 168, 196, 0.2);
+  }
+
+  .section-search i {
+    color: #f28ab3;
+    margin-right: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .section-search input {
+    border: none;
+    outline: none;
+    font-size: 0.95rem;
+    color: #f28ab3;
+    background: transparent;
+    width: 180px;
+  }
+
+  .section-search input::placeholder {
+    color: #d3a9b9;
+  }
+
+  /* ✨ 밑줄 */
+  .section-underline {
+    width: 70px;
+    height: 3px;
+    background-color: #f8dce6;
+    border-radius: 2px;
+    transition: width 0.3s ease-in-out;
+  }
+
+  #section-header:hover .section-underline {
+    width: 110px;
+  }
+
+  /* 🌙 다크모드 */
+  @media (prefers-color-scheme: dark) {
+    #section-header {
+      background: linear-gradient(180deg, #2b2b2b 0%, #1f1f1f 80%);
+      border-color: #3a3a3a;
+    }
+
+    .breadcrumb-nav a,
+    .crumb,
+    .crumb.current {
+      color: #f5a8c4;
+    }
+
+    .section-search {
+      background-color: #2b2b2b;
+      border-color: #3a3a3a;
+    }
+
+    .section-search input {
+      color: #f5a8c4;
+    }
+
+    .section-underline {
+      background-color: #f5a8c4;
+    }
+  }
+
+  /* 📱 반응형 */
+  @media (max-width: 768px) {
+    .section-search {
+      position: static;
+      transform: none;
+      margin-top: 0.8rem;
+      width: 85%;
+      justify-content: center;
+    }
+
+    .section-search input {
+      width: 100%;
+    }
+
+    .breadcrumb-nav {
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+  }
+</style>
