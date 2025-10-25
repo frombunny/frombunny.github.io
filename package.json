@@ -22,6 +22,7 @@
     "@notionhq/client": "^2.3.0",
     "dotenv": "^17.2.3",
     "gray-matter": "^4.0.3",
+    "image-downloader": "^4.3.0",
     "notion-to-md": "^3.1.9"
   }
 }
